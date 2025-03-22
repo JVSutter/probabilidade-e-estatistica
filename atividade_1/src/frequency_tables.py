@@ -5,6 +5,9 @@ Módulo para construção das tabelas de frequência
 from typing import Iterable
 import csv
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 qualitative_columns = ["artist_name", "primary_genres", "descriptors"]
 quantitative_columns = ["release_date", "avg_rating", "review_count"]
@@ -24,7 +27,15 @@ def get_column_numbers(reader: Iterable[list[str]], variables: list) -> dict[str
     return column_numbers
 
 
-def frequency_tables() -> None:
+def sturges_rule(n: int) -> int:
+    """
+    Regra de Sturges para determinar o número de classes de um histograma
+    """
+
+    return int(np.ceil(1 + 3.322 * np.log10(n)))
+
+
+def get_csv_data() -> None:
     """
     Função que lê o arquivo CSV e constrói as tabelas de frequência
     """
@@ -42,8 +53,6 @@ def frequency_tables() -> None:
                     data[column_name].add(data_entry)
                     occurences[data_entry] = occurences.get(data_entry, 0) + 1
 
-        print(occurences)
-
 
 if __name__ == "__main__":
-    frequency_tables()
+    get_csv_data()
