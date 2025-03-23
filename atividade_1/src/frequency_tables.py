@@ -5,14 +5,16 @@ Módulo para construção das tabelas de frequência
 from typing import Iterable
 import csv
 
-import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 
 
-qualitative_columns = ["artist_name", "primary_genres", "descriptors"]
-quantitative_columns = ["release_date", "avg_rating", "review_count"]
-data: dict[str, set[str]] = {column: set() for column in (qualitative_columns + quantitative_columns)}  # Mapeia coluna -> lista de dados lidos
-occurences: dict[str, int] = {}  # Mapeia dado -> número de ocorrências
+qualitative_vars = ["artist_name", "primary_genres", "descriptors"]
+quantitative_vars = ["release_date", "avg_rating", "review_count"]
+data: dict[str, set[str]] = {
+    column: set() for column in (qualitative_vars + quantitative_vars)
+}  # Mapeia coluna -> conjunto de dados lidos
+data_occurences: dict[str, int] = {}  # Mapeia dado -> número de ocorrências
 
 
 def get_column_numbers(reader: Iterable[list[str]], variables: list) -> dict[str, int]:
@@ -29,7 +31,7 @@ def get_column_numbers(reader: Iterable[list[str]], variables: list) -> dict[str
 
 def sturges_rule(n: int) -> int:
     """
-    Regra de Sturges para determinar o número de classes de um histograma
+    Regra de Sturges para determinar o número de classes de uma variável quantitativa
     """
 
     return int(np.ceil(1 + 3.322 * np.log10(n)))
@@ -37,12 +39,14 @@ def sturges_rule(n: int) -> int:
 
 def get_csv_data() -> None:
     """
-    Função que lê o arquivo CSV e constrói as tabelas de frequência
+    Função que lê o arquivo CSV e armazena os dados relevantes
     """
 
-    with open('assets/rym_clean1.csv', 'r') as file:
+    with open("assets/rym_clean1.csv", "r") as file:
         reader = csv.reader(file)
-        column_numbers = get_column_numbers(reader=reader, variables=(qualitative_columns + quantitative_columns))
+        column_numbers = get_column_numbers(
+            reader=reader, variables=(qualitative_vars + quantitative_vars)
+        )
 
         for row in reader:
             for column_name, column_number in column_numbers.items():
@@ -51,8 +55,45 @@ def get_csv_data() -> None:
 
                 for data_entry in row_data:
                     data[column_name].add(data_entry)
-                    occurences[data_entry] = occurences.get(data_entry, 0) + 1
+                    data_occurences[data_entry] = data_occurences.get(data_entry, 0) + 1
+
+
+def generate_qualitative_tables() -> str:
+    """
+    Função que gera as tabelas de frequência para variáveis qualitativas
+    """
+
+    for variable in qualitative_vars:
+        table = {variable: [], "Frequência": []}
+
+        for data_entry in data[variable]:
+            table[variable].append(data_entry)
+            table["Frequência"].append(data_occurences[data_entry])
+
+        df = pd.DataFrame(table).sort_values(by="Frequência", ascending=False)
+        df.to_csv(f"outputs/{variable}_table.csv", index=False)
+
+
+def generate_quantitative_tables() -> None:
+    """
+    Função que gera as tabelas de frequência para variáveis qualitativas
+    """
+    #  TODO
+    # 1 - Usar a regra de Sturges para determinar o número de classes
+    # 2 - Preencher a tabela com a frequência de cada classe
+    # OBS: Lidar com release_date vai ser um pouco mais complicado
+    pass
+
+
+def generate_frequency_tables() -> None:
+    """
+    Função que gera as tabelas de frequência para as variáveis de interesse
+    """
+
+    get_csv_data()
+    generate_qualitative_tables()
+    # generate_quantitative_tables()
 
 
 if __name__ == "__main__":
-    get_csv_data()
+    generate_frequency_tables()
