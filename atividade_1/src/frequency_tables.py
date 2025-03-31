@@ -72,8 +72,7 @@ def generate_qualitative_tables() -> str:
 
         sorted_entries = sorted(
             [(data_entry, data_occurences[data_entry]) for data_entry in data[variable]],
-            key=lambda x: x[1],
-            reverse=True
+            key=lambda x: (-x[1], x[0]),
         )
 
         for i, (data_entry, frequency) in enumerate(sorted_entries):
