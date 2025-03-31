@@ -117,13 +117,69 @@ def generate_qualitative_tables() -> str:
 
 def generate_quantitative_tables() -> None:
     """
-    Função que gera as tabelas de frequência para variáveis qualitativas
+    Função que gera as tabelas de frequência para variáveis quantitativas
     """
+
     #  TODO
     # 1 - Usar a regra de Sturges para determinar o número de classes
     # 2 - Preencher a tabela com a frequência de cada classe
     # OBS: Lidar com release_date vai ser um pouco mais complicado
-    pass
+
+
+    for variable in quantitative_vars:
+        # Lista com tuplas (valor numérico, frequência)
+        values = []
+        for entry in data[variable]:
+            try:
+                # Para release_date pode ser necessário converter para int,
+                # mas usaremos float para tratamento unificado.
+                num_value = float(entry)
+            except ValueError:
+                continue
+            freq = data_occurences.get(entry, 0)
+            values.append((num_value, freq))
+            
+        if not values:
+            continue
+
+        # Determinar os limites mínimo e máximo dos valores
+        val_nums = [val for val, _ in values]
+        min_val, max_val = min(val_nums), max(val_nums)
+
+        # Se todos os valores forem iguais, cria apenas uma classe
+        if min_val == max_val:
+            nbins = 1
+            bin_edges = [min_val, max_val]
+        else:
+            # Para o número de classes, usamos total de ocorrências (sum dos freqs)
+            total_frequency = sum(freq for _, freq in values)
+            nbins = sturges_rule(total_frequency)
+            bin_edges = np.linspace(min_val, max_val, nbins + 1)
+
+        # Define os rótulos para as classes no formato "limite_inferior - limite_superior"
+        labels = []
+        for i in range(nbins):
+            low = bin_edges[i]
+            high = bin_edges[i + 1]
+            labels.append(f"{low:.2f} - {high:.2f}")
+
+        # Inicializa os contadores de frequência para cada classe
+        freq_bins = [0] * nbins
+        for val, freq in values:
+            # Se o valor for o máximo, garantimos que seja incluido na última classe
+            if val == max_val:
+                bin_index = nbins - 1
+            else:
+                # Define o índice da classe baseado na posição relativa
+                bin_index = int((val - min_val) / (max_val - min_val) * nbins)
+            freq_bins[bin_index] += freq
+
+        # Cria a tabela e gera o CSV
+        table = {variable: labels, "Frequência": freq_bins}
+        df = pd.DataFrame(table)
+        df = add_relative_frequency(df)
+        df.to_csv(f"outputs/{variable}_table.csv", index=False)
+
 
 
 def generate_frequency_tables() -> None:
@@ -132,8 +188,8 @@ def generate_frequency_tables() -> None:
     """
 
     get_csv_data()
-    generate_qualitative_tables()
-    # generate_quantitative_tables()
+    # generate_qualitative_tables()
+    generate_quantitative_tables()
 
 
 if __name__ == "__main__":
