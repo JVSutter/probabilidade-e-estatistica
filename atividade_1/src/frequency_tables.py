@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 
 
+TABLE_SIZE_LIMIT = 15
 qualitative_vars = ["artist_name", "primary_genres", "descriptors"]
 quantitative_vars = ["release_date", "avg_rating", "review_count"]
 data: dict[str, set[str]] = {
@@ -51,7 +52,10 @@ def get_csv_data() -> None:
         for row in reader:
             for column_name, column_number in column_numbers.items():
                 row_data = row[column_number]
-                row_data = row_data.split(", ")  # Algumas entradas contêm múltiplos valores separados por vírgula
+                if column_name in ["primary_genres", "descriptors"]:
+                    row_data = row_data.split(", ")  # Algumas entradas contêm múltiplos valores separados por vírgula
+                else:
+                    row_data = [row_data]
 
                 for data_entry in row_data:
                     data[column_name].add(data_entry)
@@ -66,11 +70,25 @@ def generate_qualitative_tables() -> str:
     for variable in qualitative_vars:
         table = {variable: [], "Frequência": []}
 
-        for data_entry in data[variable]:
-            table[variable].append(data_entry)
-            table["Frequência"].append(data_occurences[data_entry])
+        sorted_entries = sorted(
+            [(data_entry, data_occurences[data_entry]) for data_entry in data[variable]],
+            key=lambda x: x[1],
+            reverse=True
+        )
 
-        df = pd.DataFrame(table).sort_values(by="Frequência", ascending=False)
+        for i, (data_entry, frequency) in enumerate(sorted_entries):
+            if i < TABLE_SIZE_LIMIT:
+                table[variable].append(data_entry)
+                table["Frequência"].append(frequency)
+            else:
+                break
+
+        if len(sorted_entries) > TABLE_SIZE_LIMIT:
+            others_sum = sum(freq for _, freq in sorted_entries[TABLE_SIZE_LIMIT:])
+            table[variable].append("Others")
+            table["Frequência"].append(others_sum)
+
+        df = pd.DataFrame(table)
         df.to_csv(f"outputs/{variable}_table.csv", index=False)
 
 
