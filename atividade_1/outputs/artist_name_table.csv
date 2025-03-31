@@ -1,17 +1,17 @@
-artist_name,Frequência
-Bob Dylan,25
-David Bowie,24
-Rush,19
-The Rolling Stones,18
-Iron Maiden,17
-Tom Waits,17
-Black Sabbath,16
-Miles Davis,16
-Weezer,16
-AC/DC,15
-Judas Priest,15
-Megadeth,15
-Queen,15
-R.E.M.,15
-Swans,15
-Others,4742
+artist_name,Frequência,Frequência Relativa (%)
+Bob Dylan,25,0.5
+David Bowie,24,0.48
+Rush,19,0.38
+The Rolling Stones,18,0.36
+Iron Maiden,17,0.34
+Tom Waits,17,0.34
+Black Sabbath,16,0.32
+Miles Davis,16,0.32
+Weezer,16,0.32
+AC/DC,15,0.3
+Judas Priest,15,0.3
+Megadeth,15,0.3
+Queen,15,0.3
+R.E.M.,15,0.3
+Swans,15,0.3
+Others,4742,94.84

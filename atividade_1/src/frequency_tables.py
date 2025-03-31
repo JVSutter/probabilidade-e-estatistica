@@ -62,6 +62,29 @@ def get_csv_data() -> None:
                     data_occurences[data_entry] = data_occurences.get(data_entry, 0) + 1
 
 
+def add_relative_frequency(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds a relative frequency column to a frequency table DataFrame
+
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        DataFrame with a 'Frequência' column
+
+    Returns:
+    --------
+    pd.DataFrame
+        DataFrame with an additional 'Frequência Relativa (%)' column
+    """
+    # Calculate the sum of all frequencies
+    total_frequency = df['Frequência'].sum()
+
+    # Add relative frequency column as percentage with 2 decimal places
+    df['Frequência Relativa (%)'] = (df['Frequência'] / total_frequency * 100).round(2)
+
+    return df
+
+
 def generate_qualitative_tables() -> str:
     """
     Função que gera as tabelas de frequência para variáveis qualitativas
@@ -88,6 +111,7 @@ def generate_qualitative_tables() -> str:
             table["Frequência"].append(others_sum)
 
         df = pd.DataFrame(table)
+        df = add_relative_frequency(df)
         df.to_csv(f"outputs/{variable}_table.csv", index=False)
 
 
