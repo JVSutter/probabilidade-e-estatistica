@@ -2,16 +2,15 @@
 Módulo para construção das tabelas de frequência
 """
 
-from typing import Iterable
 import csv
+from typing import Iterable
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 
 TABLE_SIZE_LIMIT = 15
 qualitative_vars = ["artist_name", "primary_genres", "descriptors"]
-quantitative_vars = ["release_date", "avg_rating", "review_count"]
+quantitative_vars = ["avg_rating", "review_count"]
 data: dict[str, set[str]] = {
     column: set() for column in (qualitative_vars + quantitative_vars)
 }  # Mapeia coluna -> conjunto de dados lidos
@@ -53,7 +52,9 @@ def get_csv_data() -> None:
             for column_name, column_number in column_numbers.items():
                 row_data = row[column_number]
                 if column_name in ["primary_genres", "descriptors"]:
-                    row_data = row_data.split(", ")  # Algumas entradas contêm múltiplos valores separados por vírgula
+                    row_data = row_data.split(
+                        ", "
+                    )  # Algumas entradas contêm múltiplos valores separados por vírgula
                 else:
                     row_data = [row_data]
 
@@ -64,24 +65,11 @@ def get_csv_data() -> None:
 
 def add_relative_frequency(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Adds a relative frequency column to a frequency table DataFrame
-
-    Parameters:
-    -----------
-    df : pd.DataFrame
-        DataFrame with a 'Frequência' column
-
-    Returns:
-    --------
-    pd.DataFrame
-        DataFrame with an additional 'Frequência Relativa (%)' column
+    Adiciona uma coluna de frequência relativa a uma tabela de frequência
     """
-    # Calculate the sum of all frequencies
-    total_frequency = df['Frequência'].sum()
 
-    # Add relative frequency column as percentage with 2 decimal places
-    df['Frequência Relativa (%)'] = (df['Frequência'] / total_frequency * 100).round(2)
-
+    total_frequency = df["Frequência"].sum()
+    df["Frequência Relativa (%)"] = (df["Frequência"] / total_frequency * 100).round(2)
     return df
 
 
@@ -94,7 +82,10 @@ def generate_qualitative_tables() -> str:
         table = {variable: [], "Frequência": []}
 
         sorted_entries = sorted(
-            [(data_entry, data_occurences[data_entry]) for data_entry in data[variable]],
+            [
+                (data_entry, data_occurences[data_entry])
+                for data_entry in data[variable]
+            ],
             key=lambda x: (-x[1], x[0]),
         )
 
@@ -123,8 +114,7 @@ def generate_quantitative_tables() -> None:
     #  TODO
     # 1 - Usar a regra de Sturges para determinar o número de classes
     # 2 - Preencher a tabela com a frequência de cada classe
-    # OBS: Lidar com release_date vai ser um pouco mais complicado
-
+    # OBS: Lidar com release_date vai ser um pouco mais complicado (tirei por enquanto)
 
     for variable in quantitative_vars:
         # Lista com tuplas (valor numérico, frequência)
@@ -138,7 +128,7 @@ def generate_quantitative_tables() -> None:
                 continue
             freq = data_occurences.get(entry, 0)
             values.append((num_value, freq))
-            
+
         if not values:
             continue
 
@@ -161,7 +151,17 @@ def generate_quantitative_tables() -> None:
         for i in range(nbins):
             low = bin_edges[i]
             high = bin_edges[i + 1]
-            labels.append(f"{low:.2f} - {high:.2f}")
+
+            if variable == "review_count":
+                if i < nbins - 1:
+                    labels.append(f"{int(low)} - {int(high) - 1}")
+                else:
+                    labels.append(f"{int(low)} - {int(high)}")
+            elif variable == "avg_rating":
+                if i < nbins - 1:
+                    labels.append(f"{low:.2f} - {high - 0.01:.2f}")
+                else:
+                    labels.append(f"{low:.2f} - {high:.2f}")
 
         # Inicializa os contadores de frequência para cada classe
         freq_bins = [0] * nbins
@@ -181,14 +181,13 @@ def generate_quantitative_tables() -> None:
         df.to_csv(f"outputs/{variable}_table.csv", index=False)
 
 
-
 def generate_frequency_tables() -> None:
     """
     Função que gera as tabelas de frequência para as variáveis de interesse
     """
 
     get_csv_data()
-    # generate_qualitative_tables()
+    generate_qualitative_tables()
     generate_quantitative_tables()
 
 
