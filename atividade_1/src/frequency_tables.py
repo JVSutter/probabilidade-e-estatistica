@@ -3,6 +3,7 @@ Módulo para construção das tabelas de frequência
 """
 
 import csv
+from datetime import datetime, timedelta
 from typing import Iterable
 
 import numpy as np
@@ -10,7 +11,7 @@ import pandas as pd
 
 TABLE_SIZE_LIMIT = 15
 qualitative_vars = ["artist_name", "primary_genres", "descriptors"]
-quantitative_vars = ["avg_rating", "review_count"]
+quantitative_vars = ["release_date", "avg_rating", "review_count"]
 data: dict[str, set[str]] = {
     column: set() for column in (qualitative_vars + quantitative_vars)
 }  # Mapeia coluna -> conjunto de dados lidos
@@ -110,22 +111,19 @@ def generate_quantitative_tables() -> None:
     """
     Função que gera as tabelas de frequência para variáveis quantitativas
     """
-
-    #  TODO
-    # 1 - Usar a regra de Sturges para determinar o número de classes
-    # 2 - Preencher a tabela com a frequência de cada classe
-    # OBS: Lidar com release_date vai ser um pouco mais complicado (tirei por enquanto)
-
     for variable in quantitative_vars:
         # Lista com tuplas (valor numérico, frequência)
         values = []
         for entry in data[variable]:
             try:
-                # Para release_date pode ser necessário converter para int,
-                # mas usaremos float para tratamento unificado.
-                num_value = float(entry)
-            except ValueError:
+                if variable == "release_date":
+                    date_obj = datetime.strptime(entry, "%Y-%m-%d")
+                    num_value = date_obj
+                else:
+                    num_value = float(entry)
+            except (ValueError, TypeError):
                 continue
+
             freq = data_occurences.get(entry, 0)
             values.append((num_value, freq))
 
@@ -141,18 +139,32 @@ def generate_quantitative_tables() -> None:
             nbins = 1
             bin_edges = [min_val, max_val]
         else:
-            # Para o número de classes, usamos total de ocorrências (sum dos freqs)
+            # Para o número de classes, usamos total de ocorrências
             total_frequency = sum(freq for _, freq in values)
             nbins = sturges_rule(total_frequency)
-            bin_edges = np.linspace(min_val, max_val, nbins + 1)
 
-        # Define os rótulos para as classes no formato "limite_inferior - limite_superior"
+            if variable == "release_date":
+                time_delta = max_val - min_val
+                adjusted_max = max_val + timedelta(days=1)
+                time_delta = adjusted_max - min_val
+                bin_edges = [
+                    min_val + (time_delta / nbins) * i for i in range(nbins + 1)
+                ]
+            else:
+                bin_edges = np.linspace(min_val, max_val, nbins + 1)
+
+        # Define os rótulos para as classes sem sobreposição
         labels = []
         for i in range(nbins):
             low = bin_edges[i]
             high = bin_edges[i + 1]
 
-            if variable == "review_count":
+            if variable == "release_date":
+                upper_date = high - timedelta(days=1)
+                labels.append(
+                    f"{low.strftime('%Y-%m-%d')} - {upper_date.strftime('%Y-%m-%d')}"
+                )
+            elif variable == "review_count":
                 if i < nbins - 1:
                     labels.append(f"{int(low)} - {int(high) - 1}")
                 else:
@@ -166,12 +178,24 @@ def generate_quantitative_tables() -> None:
         # Inicializa os contadores de frequência para cada classe
         freq_bins = [0] * nbins
         for val, freq in values:
-            # Se o valor for o máximo, garantimos que seja incluido na última classe
-            if val == max_val:
-                bin_index = nbins - 1
+            if variable == "release_date":
+                bin_index = 0
+                for j in range(nbins):
+                    if j == nbins - 1:
+                        if bin_edges[j] <= val <= bin_edges[j + 1]:
+                            bin_index = j
+                            break
+                    else:
+                        if bin_edges[j] <= val < bin_edges[j + 1]:
+                            bin_index = j
+                            break
             else:
-                # Define o índice da classe baseado na posição relativa
-                bin_index = int((val - min_val) / (max_val - min_val) * nbins)
+                if val == max_val:
+                    bin_index = nbins - 1
+                else:
+                    bin_index = int((val - min_val) / (max_val - min_val) * nbins)
+                    bin_index = min(bin_index, nbins - 1)
+
             freq_bins[bin_index] += freq
 
         # Cria a tabela e gera o CSV
