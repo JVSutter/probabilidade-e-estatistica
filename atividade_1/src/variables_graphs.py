@@ -7,12 +7,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from frequency_tables import quantitative_vars, qualitative_vars, translation
+
 # Configurações gerais dos gráficos
 plt.style.use('ggplot')
 plt.rcParams.update({'font.size': 12})
 sns.set_palette("deep")
 
-def plot_qualitative_graph(filename: str, title: str):
+def plot_qualitative_graph(filename: str):
     """
     Gera um gráfico de barras para variáveis qualitativas
     
@@ -31,7 +33,7 @@ def plot_qualitative_graph(filename: str, title: str):
     
     # Gráfico de barras
     ax = sns.barplot(x=filename, y="Frequência", data=df)
-    plt.title(f"Distribuição de Frequência - {title}")
+    plt.xlabel(filename)
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     
@@ -43,7 +45,7 @@ def plot_qualitative_graph(filename: str, title: str):
     plt.savefig(f"outputs/{filename}_grafico.png", dpi=300)
     plt.close()
 
-def plot_quantitative_graph(filename: str, title: str):
+def plot_quantitative_graph(filename: str):
     """
     Gera um histograma para variáveis quantitativas
     
@@ -62,8 +64,7 @@ def plot_quantitative_graph(filename: str, title: str):
     
     # Gráfico de barras para representar o histograma
     ax = sns.barplot(x=intervals, y=frequencies)
-    plt.title(f"Histograma - {title}")
-    plt.xlabel(title)
+    plt.xlabel(filename)
     plt.ylabel("Frequência")
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
@@ -91,12 +92,11 @@ def plot_release_date_graph(filename: str ="release_date"):
     
     # Extrai datas e frequências
     # Obtém apenas o ano do intervalo (primeiro 4 dígitos)
-    years = [intervalo.split('-')[0][:4] for intervalo in df[filename]]
+    years = [interval.split('-')[0][:4] for interval in df[filename]]
     frequencies = df["Frequência"].tolist()
     
     # Gráfico de linha para mostrar tendência temporal
     plt.plot(years, frequencies, marker='o', linewidth=2, markersize=8)
-    plt.title(f"Tendência de Lançamentos ao Longo do Tempo")
     plt.xlabel("Ano")
     plt.ylabel("Número de Lançamentos")
     plt.grid(True)
@@ -117,14 +117,13 @@ def plot_all_graphs():
         os.makedirs("outputs")
         
     # Gera gráficos para variáveis qualitativas
-    plot_qualitative_graph("artist_name", "Artistas")
-    plot_qualitative_graph("primary_genres", "Gêneros Musicais Primários")
-    plot_qualitative_graph("descriptors", "Descritores")
+    for variable in qualitative_vars:
+        plot_qualitative_graph(translation[variable])
     
     # Gera gráficos para variáveis quantitativas
-    plot_release_date_graph()
-    plot_quantitative_graph("avg_rating", "Avaliação Média")
-    plot_quantitative_graph("review_count", "Número de Avaliações")
+    plot_release_date_graph(translation["release_date"])
+    plot_quantitative_graph(translation["avg_rating"])
+    plot_quantitative_graph(translation["review_count"])
     
     print("Todos os gráficos foram gerados com sucesso!")
 

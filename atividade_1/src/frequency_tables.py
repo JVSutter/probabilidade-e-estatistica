@@ -16,6 +16,14 @@ data: dict[str, set[str]] = {
     column: set() for column in (qualitative_vars + quantitative_vars)
 }  # Mapeia coluna -> conjunto de dados lidos
 data_occurences: dict[str, int] = {}  # Mapeia dado -> número de ocorrências
+translation = {
+    "artist_name": "Nome do artista",
+    "primary_genres": "Gêneros primários",
+    "descriptors": "Descritores",
+    "release_date": "Data de lançamento",
+    "avg_rating": "Média das avaliações",
+    "review_count": "Número de resenhas",
+}
 
 
 def get_column_numbers(reader: Iterable[list[str]], variables: list) -> dict[str, int]:
@@ -92,7 +100,8 @@ def generate_qualitative_tables() -> None:
     """
 
     for variable in qualitative_vars:
-        table = {variable: [], "Frequência": []}
+        translated_variable = translation[variable]
+        table = {translated_variable: [], "Frequência": []}
 
         # Ordena por frequência decrescente. Em caso de empate, ordena alfabeticamente
         sorted_entries = sorted(
@@ -105,19 +114,19 @@ def generate_qualitative_tables() -> None:
 
         for i, (data_entry, frequency) in enumerate(sorted_entries):
             if i < TABLE_SIZE_LIMIT:
-                table[variable].append(data_entry)
+                table[translated_variable].append(data_entry)
                 table["Frequência"].append(frequency)
             else:
                 break
 
         if len(sorted_entries) > TABLE_SIZE_LIMIT:
             others_sum = sum(freq for _, freq in sorted_entries[TABLE_SIZE_LIMIT:])
-            table[variable].append("Others")
+            table[translated_variable].append("Others")
             table["Frequência"].append(others_sum)
 
         df = pd.DataFrame(table)
         df = add_relative_frequency(df)
-        df.to_csv(f"outputs/{variable}_table.csv", index=False)
+        df.to_csv(f"outputs/{translated_variable}_table.csv", index=False)
 
 
 def generate_quantitative_tables() -> None:
@@ -143,6 +152,7 @@ def generate_quantitative_tables() -> None:
         # Cria as bordas dos intervalos para as classes
         bin_edges = create_bin_edges(variable, min_val, max_val, nbins)
 
+        
         # Cria rótulos descritivos para as classes
         labels = create_class_labels(variable, bin_edges, nbins)
 
@@ -306,6 +316,7 @@ def create_and_save_table(variable: str, labels: list, freq_bins: list) -> None:
     @param freq_bins: Lista com as frequências de cada classe
     """
 
+    variable = translation[variable]
     table = {variable: labels, "Frequência": freq_bins}
     df = pd.DataFrame(table)
     df = add_relative_frequency(df)
