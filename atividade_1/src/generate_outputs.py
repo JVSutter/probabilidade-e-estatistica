@@ -1,6 +1,6 @@
 from frequency_tables import generate_frequency_tables
 from variables_graphs import plot_all_graphs
-from relation_variables_graphs import plot_relation_variables
+from variable_relationships import plot_relation_variables
 
 def generate_outputs() -> None:
     print('Construindo tabelas de frequências...')
