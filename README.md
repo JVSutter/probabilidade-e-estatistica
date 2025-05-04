@@ -11,3 +11,9 @@ A seguinte tabela lista todos os exercícios completados durante o curso, em ord
 |      Tarefa      |        Descrição         | 
 | :--------------: | :----------------------: | 
 | Atividade 1 | Elaboração de um resumo expandido contendo a análise estatística de um conjunto de dados públicos, abordando tabelas de frequência, gráficos, medidas de resumo e relações entre variáveis.  | 
+
+---
+
+## Organização do repositório
+
+O repositório está divido em duas pastas: uma para cada atividade/etapa do trabalho. Cada pasta é basicamente um "projeto próprio", portanto leia os seus README's para entender como executar cada um.
