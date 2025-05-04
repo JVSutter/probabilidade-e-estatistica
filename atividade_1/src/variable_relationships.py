@@ -70,9 +70,19 @@ def plot_variable_relationships():
     genre_data = genre_data.explode('primary_genres')
     genre_data['primary_genres'] = genre_data['primary_genres'].str.strip()
 
-    # Agrupar por gênero individual e calcular média
-    genre_avg = genre_data.groupby('primary_genres')['avg_rating'].mean().reset_index()
-    genre_avg = genre_avg.sort_values(by='avg_rating', ascending=False).head(10)  # Top 10 gêneros
+    # Contar aparições de cada gênero
+    genre_counts = genre_data['primary_genres'].value_counts()
+
+    # Definir mínimo de ocorrências (ex: pelo menos 20)
+    min_count = 100
+    valid_genres = genre_counts[genre_counts >= min_count].index
+
+    # Filtrar gêneros válidos
+    filtered_genre_data = genre_data[genre_data['primary_genres'].isin(valid_genres)]
+
+    # Calcular média apenas dos válidos
+    genre_avg = filtered_genre_data.groupby('primary_genres')['avg_rating'].mean().reset_index()
+    genre_avg = genre_avg.sort_values(by='avg_rating', ascending=False).head(10)
 
     # Plotar
     plt.figure(figsize=(10, 6))
@@ -95,9 +105,20 @@ def plot_variable_relationships():
     descriptor_data = descriptor_data.explode('descriptors')
     descriptor_data['descriptors'] = descriptor_data['descriptors'].str.strip()
 
-    # Agrupar por descritor individual
-    descriptor_avg = descriptor_data.groupby('descriptors')['avg_rating'].mean().reset_index()
-    descriptor_avg = descriptor_avg.sort_values(by='avg_rating', ascending=False).head(10)  # Top 10
+    # Contar aparições de cada descritor
+    descriptor_counts = descriptor_data['descriptors'].value_counts()
+
+    # Definir mínimo de ocorrências (ex: pelo menos 20)
+    min_count = 100
+    valid_descriptors = descriptor_counts[descriptor_counts >= min_count].index
+
+    # Filtrar descritores válidos
+    filtered_descriptor_data = descriptor_data[descriptor_data['descriptors'].isin(valid_descriptors)]
+
+    # Calcular média apenas dos válidos
+    descriptor_avg = filtered_descriptor_data.groupby('descriptors')['avg_rating'].mean().reset_index()
+    descriptor_avg = descriptor_avg.sort_values(by='avg_rating', ascending=False).head(10)
+
 
     # Plotar
     plt.figure(figsize=(10, 6))
@@ -109,6 +130,43 @@ def plot_variable_relationships():
     plt.tight_layout()
     plt.savefig('outputs/Media_por_Descritor.png')
 
+    # Gráfico 5: Evolução temporal da média por gênero
+    genre_time_data = data[['release_date', 'primary_genres', 'avg_rating']].dropna()
+    genre_time_data['release_date'] = pd.to_datetime(genre_time_data['release_date'])
+    genre_time_data['primary_genres'] = genre_time_data['primary_genres'].str.split(',')
+    genre_time_data = genre_time_data.explode('primary_genres')
+    genre_time_data['primary_genres'] = genre_time_data['primary_genres'].str.strip()
+
+    # Filtrar gêneros com pelo menos 100 ocorrências
+    genre_counts = genre_time_data['primary_genres'].value_counts()
+    valid_genres = genre_counts[genre_counts >= 100].index
+    genre_time_data = genre_time_data[genre_time_data['primary_genres'].isin(valid_genres)]
+
+    # Agrupar por intervalo de anos e gênero
+    genre_time_data['year'] = genre_time_data['release_date'].dt.year
+    bins = pd.interval_range(start=1950, end=2025, freq=10, closed='left')
+    genre_time_data['decade'] = pd.cut(genre_time_data['year'], bins=bins)
+
+    grouped = genre_time_data.groupby(['decade', 'primary_genres'])['avg_rating'].mean().reset_index()
+
+    # Pivotar para ter décadas como eixo x e gêneros como colunas
+    pivoted = grouped.pivot(index='decade', columns='primary_genres', values='avg_rating')
+
+    # Selecionar os gêneros com mais dados (top 5 com menos valores nulos)
+    top_genres = pivoted.count().sort_values(ascending=False).head(5).index
+    pivoted = pivoted[top_genres]
+
+    # Plotar gráfico
+    plt.figure(figsize=(12, 6))
+    pivoted.plot(marker='o')
+    plt.title('Evolução da Média das Avaliações por Gênero ao Longo das Décadas')
+    plt.xlabel('Década')
+    plt.ylabel('Média das Avaliações')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.tight_layout()
+    plt.legend(title='Gênero')
+    plt.savefig('outputs/Media_por_Genero_Tempo.png')
 
 if __name__ == "__main__":
     plot_variable_relationships()
