@@ -26,11 +26,12 @@ def plot_qualitative_graph(filename: str):
     df = pd.read_csv(f"outputs/{filename}_table.csv")
     
     # Limita a quantidade de entradas para melhor visualização
-    if len(df) > 10:
-        df = df.iloc[:10].copy()  # Copia apenas as 10 primeiras linhas
+    if len(df) > 15:
+        df = df.iloc[:15].copy()  # Copia apenas as 10 primeiras linhas
     
     plt.figure(figsize=(12, 8))
     
+    df["Frequência"].max()
     # Gráfico de barras
     ax = sns.barplot(x=filename, y="Frequência", data=df)
     plt.xlabel(filename)
@@ -39,7 +40,7 @@ def plot_qualitative_graph(filename: str):
     
     # Adiciona os valores sobre as barras
     for i, v in enumerate(df["Frequência"]):
-        ax.text(i, v + 5, str(v), ha='center')
+        ax.text(i, v + 2, str(v), ha='center')
     
     # Salva o gráfico
     plt.savefig(f"outputs/{filename}_grafico.png", dpi=300)
