@@ -31,7 +31,6 @@ def plot_qualitative_graph(filename: str):
     
     plt.figure(figsize=(12, 8))
     
-    df["Frequência"].max()
     # Gráfico de barras
     ax = sns.barplot(x=filename, y="Frequência", data=df)
     plt.title("Mostrando apenas as 15 maiores frequências")
@@ -40,8 +39,9 @@ def plot_qualitative_graph(filename: str):
     plt.tight_layout()
     
     # Adiciona os valores sobre as barras
+    max_value = df["Frequência"].max()
     for i, v in enumerate(df["Frequência"]):
-        ax.text(i, v + 2, str(v), ha='center')
+        ax.text(i, v + 0.01 * max_value, str(v), ha='center')
     
     # Salva o gráfico
     plt.savefig(f"outputs/{filename}_grafico.png", dpi=300)
