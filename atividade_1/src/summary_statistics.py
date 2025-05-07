@@ -2,6 +2,7 @@ import math
 from collections import Counter
 from typing import Iterable
 import csv
+import numpy as np
 
 #!/usr/bin/env python3
 """
@@ -18,33 +19,53 @@ column: set() for column in (qualitative_vars + quantitative_vars)
 }  # Mapeia coluna -> conjunto de dados lidos
 data_occurences: dict[str, int] = {}  # Mapeia dado -> número de ocorrências
 
-def calculate_mean(data):
+def calculate_mean(data, key):
     """Retorna a média da lista de dados."""
+    if key == "release_date":
+        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        mean = (data_array
+            .mean()
+            .astype('datetime64[s]'))
+        return mean
+    data = list(map(float, data))  # Converte os dados para float
     return sum(data) / len(data)
 
-def calculate_median(data):
+def calculate_median(data, key):
     """Retorna a mediana da lista de dados."""
+    if key == "release_date":
+        median = np.datetime64(
+            int(np.median(np.array(data, dtype='datetime64[s]').view('i8'))), 's'
+        )
+        return median
+    data = list(map(float, data))  # Converte os dados para float
     sorted_data = sorted(data)
     n = len(sorted_data)
     mid = n // 2
     if n % 2 == 0:
         return (sorted_data[mid - 1] + sorted_data[mid]) / 2
-    else:
-        return sorted_data[mid]
+    return sorted_data[mid]
 
-def calculate_mode(data):
+def calculate_mode(data, key):
     """Retorna a(s) moda(s) da lista de dados como uma lista.
     Se todos os números ocorrerem igualmente, retorna toda a lista ordenada."""
+    if key != "release_date" and key not in qualitative_vars:
+        data = list(map(float, data))
     count = Counter(data)
     max_occurrence = max(count.values())
     modes = [x for x, occ in count.items() if occ == max_occurrence]
     return sorted(modes)
 
-def calculate_percentile(data, percentile):
+def calculate_percentile(data, percentile, key):
     """Retorna o percentil informado da lista de dados.
     Utiliza interpolação linear entre posições mais próximas."""
     if not 0 <= percentile <= 100:
         raise ValueError("O percentil deve estar entre 0 e 100")
+    if key == "release_date":
+        value = np.datetime64(
+            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), percentile)), 's'
+        )
+        return value
+    data = list(map(float, data))  # Converte os dados para float
     sorted_data = sorted(data)
     n = len(sorted_data)
     # Calcula a posição do ranking
@@ -60,14 +81,24 @@ def calculate_percentile(data, percentile):
     weight = rank - lower
     return lower_value + weight * (upper_value - lower_value)
 
-def calculate_quartiles(data):
+def calculate_quartiles(data, key):
     """Retorna o primeiro (Q1), segundo (Q2/Mediana) e terceiro (Q3) quartis da lista de dados."""
-    Q1 = calculate_percentile(data, 25)
-    Q2 = calculate_median(data)
-    Q3 = calculate_percentile(data, 75)
+    if key == "release_date":
+        Q1 = np.datetime64(
+            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 25)), 's'
+        )
+        Q2 = calculate_median(data, key)
+        Q3 = np.datetime64(
+            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 75)), 's'
+        )
+        return Q1, Q2, Q3
+
+    Q1 = calculate_percentile(data, 25, key)
+    Q2 = calculate_median(data, key)
+    Q3 = calculate_percentile(data, 75, key)
     return Q1, Q2, Q3
 
-def calculate_decil(data, decil_index):
+def calculate_decil(data, decil_index, key):
     """Retorna o decil informado da lista de dados.
     
     @param data: Lista de dados numéricos.
@@ -77,32 +108,54 @@ def calculate_decil(data, decil_index):
     if not 1 <= decil_index <= 9:
         raise ValueError("O índice do decil deve estar entre 1 e 9")
     # O decil 1 corresponde ao percentil 10, o decil 2 ao percentil 20, e assim por diante.
-    return calculate_percentile(data, decil_index * 10)
+    return calculate_percentile(data, decil_index * 10, key)
 
-def calculate_range(data):
+def calculate_range(data, key):
     """Retorna a amplitude (máximo - mínimo) da lista de dados."""
+    if key == "release_date":
+        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_range = np.datetime64(int(data_array.max() - data_array.min()), 's')
+        return data_range
+    data = list(map(float, data))  # Converte os dados para float
     return max(data) - min(data)
 
-def calculate_variance(data):
+def calculate_variance(data, key):
     """Retorna a variância populacional da lista de dados."""
-    mean_value = calculate_mean(data)
+    if key == "release_date":
+        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        variance_value = (data_array.var().astype('datetime64[s]'))
+        return variance_value
+    data = list(map(float, data))  # Converte os dados para float
+    mean_value = calculate_mean(data, key)
     return sum((x - mean_value) ** 2 for x in data) / len(data)
 
-def calculate_standard_deviation(data):
+def calculate_standard_deviation(data, key):
     """Retorna o desvio padrão populacional da lista de dados."""
-    return math.sqrt(calculate_variance(data))
+    if key == "release_date":
+        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        std_deviation = data_array.std().astype('datetime64[s]')
+        return std_deviation
+    data = list(map(float, data))  # Converte os dados para float
+    return math.sqrt(calculate_variance(data, key))
 
-def calculate_interquartile_range(data):
+def calculate_interquartile_range(data, key):
     """Retorna o intervalo interquartílico (IQR) da lista de dados."""
-    Q1, _, Q3 = calculate_quartiles(data)
+    if key == "release_date":
+        Q1 = int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 25))
+        Q3 = int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 75))
+        return np.datetime64(int(Q3 - Q1), 's')
+    Q1, _, Q3 = calculate_quartiles(data, key)
     return Q3 - Q1
 
-def calculate_coefficient_of_variation(data):
+def calculate_coefficient_of_variation(data, key):
     """Retorna o coeficiente de variação (desvio padrão / média) da lista de dados."""
-    mean_value = calculate_mean(data)
-    if mean_value == 0:
+    mean_value = calculate_mean(data, key)
+    if mean_value == 0 or "1970-01-01T00:00:00":
         return float('inf')
-    return calculate_standard_deviation(data) / mean_value
+    if key == "release_date":
+        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        return (data_array.std() / data_array.mean()).astype('datetime64[s]')
+    return calculate_standard_deviation(data, key) / mean_value
 
 def get_column_numbers(reader: Iterable[list[str]], variables: list) -> dict[str, int]:
     """
@@ -150,36 +203,40 @@ def get_csv_data() -> None:
 
 
 def get_summary_statistics():
-    # Exemplo de conjunto de dados; modifique ou estenda com seus próprios dados.
-    #data = [12, 15, 14, 10, 8, 11, 15, 12, 9, 10, 16, 15]
     get_csv_data()
-    #print("Conjunto de dados:", data["avg_rating"])
     for key, dataset in data.items():
-        if key in qualitative_vars or key == "release_date":
-            continue
-        dataset_list = list(map(float, dataset))  # Converte os dados para float
         print(f"\nEstatísticas para {key}:")
-        
-        mean_value = calculate_mean(dataset_list)
-        median_value = calculate_median(dataset_list)
-        mode_values = calculate_mode(dataset_list)
-        Q1, Q2, Q3 = calculate_quartiles(dataset_list)
-        data_range = calculate_range(dataset_list)
-        variance_value = calculate_variance(dataset_list)
-        std_deviation = calculate_standard_deviation(dataset_list)
-        iqr = calculate_interquartile_range(dataset_list)
-        coefficient_of_variation = calculate_coefficient_of_variation(dataset_list)
-        
-        print(f"Média: {mean_value:.2f}")
-        print(f"Mediana: {median_value:.2f}")
+        # Se o dado for qualitativo, calcula apenas a moda
+        if key in qualitative_vars:
+            dataset_list = list(dataset)
+            mode_values = calculate_mode(dataset_list, key)
+            #print(f"Moda(s): {mode_values}")
+            continue
+        # Se o dado for qualitativo, não faz sentido calcular média, mediana, etc.
+        dataset_list = list(dataset)  # Converte os dados para float
+        #if key == "release_date":
+        mean_value = calculate_mean(dataset_list, key)
+        median_value = calculate_median(dataset_list, key)
+        mode_values = calculate_mode(dataset_list, key)
+        Q1, Q2, Q3 = calculate_quartiles(dataset_list, key)
+        data_range = calculate_range(dataset_list, key)
+        variance_value = calculate_variance(dataset_list, key)
+        std_deviation = calculate_standard_deviation(dataset_list, key)
+        iqr = calculate_interquartile_range(dataset_list, key)
+        coefficient_of_variation = calculate_coefficient_of_variation(dataset_list, key)
+        """
+        print(f"Média: {mean_value}")
+        print(f"Mediana: {median_value}")
         print(f"Moda(s): {mode_values}")
-        print(f"Quartis: Q1 = {Q1:.2f}, Q2 (Mediana) = {Q2:.2f}, Q3 = {Q3:.2f}")
-        print(f"Amplitude: {data_range:.2f}")
-        print(f"Variância: {variance_value:.2f}")
-        print(f"Desvio Padrão: {std_deviation:.2f}")
-        print(f"Intervalo Interquartílico (IQR): {iqr:.2f}")
-        print(f"Coeficiente de Variação: {coefficient_of_variation:.2f}")
+        print(f"Quartis: Q1 = {Q1}, Q2 (Mediana) = {Q2}, Q3 = {Q3}")
+        print(f"Amplitude: {data_range}")
+        print(f"Variância: {variance_value}")
+        print(f"Desvio Padrão: {std_deviation}")
+        print(f"Intervalo Interquartílico (IQR): {iqr}")
+        print(f"Coeficiente de Variação: {coefficient_of_variation}")
+        """
         # Percentil e decil dependem do index desejado
+
 
 if __name__ == "__main__":
     get_summary_statistics()
