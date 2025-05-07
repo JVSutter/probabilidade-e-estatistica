@@ -153,6 +153,14 @@ def generate_quantitative_tables() -> None:
         bin_edges = create_bin_edges(variable, min_val, max_val, nbins)
 
         
+        if variable == "review_count":
+            bin_edges = bin_edges.tolist()
+            bin_edges.insert(1, 70)
+            last = bin_edges[-1]
+            bin_edges = bin_edges[:8]
+            bin_edges[-1] = last
+            nbins = len(bin_edges) - 1
+
         # Cria rótulos descritivos para as classes
         labels = create_class_labels(variable, bin_edges, nbins)
 
@@ -295,10 +303,13 @@ def calculate_class_frequencies(variable: str, values: list[tuple], bin_edges: l
                 # Se for o valor máximo, garantimos que fique na última classe
                 bin_index = nbins - 1
             else:
-                # Cálculo proporcional para determinar a classe
-                min_val = min(val for val, _ in values)
-                max_val = max(val for val, _ in values)
-                bin_index = int((val - min_val) / (max_val - min_val) * nbins)
+                # O índice da frequência a ser incrementada é o índice que representa
+                # o intervalo ao qual o valor pertence
+                for i, (low, high) in enumerate(zip(bin_edges, bin_edges[1:])):
+                    if low <= val <= high:
+                        bin_index = i
+                        break
+
                 # Proteção contra valores fora dos limites
                 bin_index = min(bin_index, nbins - 1)
 
