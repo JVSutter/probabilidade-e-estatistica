@@ -150,7 +150,7 @@ def calculate_interquartile_range(data, key):
 def calculate_coefficient_of_variation(data, key):
     """Retorna o coeficiente de variação (desvio padrão / média) da lista de dados."""
     mean_value = calculate_mean(data, key)
-    if mean_value == 0 or "1970-01-01T00:00:00":
+    if mean_value == 0 or mean_value == "1970-01-01T00:00:00":
         return float('inf')
     if key == "release_date":
         data_array = np.array(data, dtype='datetime64[s]').view('i8')
