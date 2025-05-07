@@ -204,13 +204,26 @@ def get_csv_data() -> None:
 
 def get_summary_statistics():
     get_csv_data()
-    for key, dataset in data.items():
+    total_data = {}
+    variables = quantitative_vars + qualitative_vars
+    for i in range(len(variables)):
+        total_data[variables[i]] = []
+    for key, value in data_occurences.items():
+        for data_key, dataset in data.items():
+            if key in dataset:
+                key_aux = key
+                if ",..." in key:
+                    key_aux = key[:-(len(",..."))]
+                for i in range(value):
+                    total_data[data_key].append(key_aux)
+
+    for key, dataset in total_data.items():
         print(f"\nEstatísticas para {key}:")
         # Se o dado for qualitativo, calcula apenas a moda
         if key in qualitative_vars:
             dataset_list = list(dataset)
             mode_values = calculate_mode(dataset_list, key)
-            #print(f"Moda(s): {mode_values}")
+            print(f"Moda(s): {mode_values}")
             continue
         # Se o dado for qualitativo, não faz sentido calcular média, mediana, etc.
         dataset_list = list(dataset)  # Converte os dados para float
@@ -224,7 +237,6 @@ def get_summary_statistics():
         std_deviation = calculate_standard_deviation(dataset_list, key)
         iqr = calculate_interquartile_range(dataset_list, key)
         coefficient_of_variation = calculate_coefficient_of_variation(dataset_list, key)
-        """
         print(f"Média: {mean_value}")
         print(f"Mediana: {median_value}")
         print(f"Moda(s): {mode_values}")
@@ -234,9 +246,7 @@ def get_summary_statistics():
         print(f"Desvio Padrão: {std_deviation}")
         print(f"Intervalo Interquartílico (IQR): {iqr}")
         print(f"Coeficiente de Variação: {coefficient_of_variation}")
-        """
         # Percentil e decil dependem do index desejado
-
 
 if __name__ == "__main__":
     get_summary_statistics()
