@@ -3,6 +3,7 @@ Módulo para construção das tabelas de frequência
 """
 
 import csv
+import os
 from datetime import datetime, timedelta
 from typing import Iterable
 
@@ -152,14 +153,25 @@ def generate_quantitative_tables() -> None:
         # Cria as bordas dos intervalos para as classes
         bin_edges = create_bin_edges(variable, min_val, max_val, nbins)
 
-        
+        suffix = ''
         if variable == "review_count":
+            # Gambiarra necessária
+            # Primeiro cria a tabela original, sem ajustes para o gráfico
+            
+            labels = create_class_labels(variable, bin_edges, nbins)
+            freq_bins = calculate_class_frequencies(variable, values, bin_edges, nbins)
+            create_and_save_table(variable, labels, freq_bins)
+
+            # Ajusta os intervalos para que o gráfico fique com boas proporções
+            # Uma nova tabela de frequência será gerada só para gráfico
             bin_edges = bin_edges.tolist()
             bin_edges.insert(1, 70)
             last = bin_edges[-1]
             bin_edges = bin_edges[:8]
             bin_edges[-1] = last
             nbins = len(bin_edges) - 1
+            
+            suffix = '_ajustado'
 
         # Cria rótulos descritivos para as classes
         labels = create_class_labels(variable, bin_edges, nbins)
@@ -168,7 +180,7 @@ def generate_quantitative_tables() -> None:
         freq_bins = calculate_class_frequencies(variable, values, bin_edges, nbins)
 
         # Cria a tabela e salva como CSV
-        create_and_save_table(variable, labels, freq_bins)
+        create_and_save_table(variable, labels, freq_bins, suffix)
 
 
 def collect_variable_values(variable: str) -> list[tuple]:
@@ -318,7 +330,7 @@ def calculate_class_frequencies(variable: str, values: list[tuple], bin_edges: l
     return freq_bins
 
 
-def create_and_save_table(variable: str, labels: list, freq_bins: list) -> None:
+def create_and_save_table(variable: str, labels: list, freq_bins: list, file_suffix: str = '') -> None:
     """
     Cria a tabela de frequência e salva como CSV.
 
@@ -331,7 +343,7 @@ def create_and_save_table(variable: str, labels: list, freq_bins: list) -> None:
     table = {variable: labels, "Frequência": freq_bins}
     df = pd.DataFrame(table)
     df = add_relative_frequency(df)
-    df.to_csv(f"outputs/{variable}_table.csv", index=False)
+    df.to_csv(f"outputs/{variable}{file_suffix}_table.csv", index=False)
 
 
 def generate_frequency_tables() -> None:

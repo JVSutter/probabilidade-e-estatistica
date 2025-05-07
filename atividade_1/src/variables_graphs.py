@@ -56,7 +56,10 @@ def plot_quantitative_graph(filename: str):
     """
 
     # Lê o arquivo CSV
-    df = pd.read_csv(f"outputs/{filename}_table.csv")
+    path = f"outputs/{filename}_table.csv"
+    if filename == "Número de resenhas":
+        path = f"outputs/{filename}_ajustado_table.csv"
+    df = pd.read_csv(path)
     
     plt.figure(figsize=(12, 8))
     
