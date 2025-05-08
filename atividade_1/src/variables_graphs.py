@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 from frequency_tables import quantitative_vars, qualitative_vars, translation
 
@@ -112,6 +113,39 @@ def plot_release_date_graph(filename: str ="release_date"):
     plt.savefig(f"outputs/{filename}_grafico.png", dpi=300)
     plt.close()
 
+ #Distribuicao da media das avaliacoes
+def plot_boxplot(filename: str = "Média das avaliações",
+                 graphname: str = "boxplot"
+                 ):
+
+    df = pd.read_csv(f"outputs/{filename}_table.csv")
+    
+    plt.figure(figsize=(12, 8))
+    
+    # 1. Converter intervalos para valores numéricos (usando o ponto médio)
+    df['Ponto Médio'] = df[filename].apply(lambda x: np.mean([float(i) for i in x.split(' - ')]))
+    
+    # 2. Ajeita os dados 
+    stats = {
+        'med': 2.54,    # Mediana (Q2)
+        'q1': 3.28,     # Primeiro quartil (25%)
+        'q3': 3.80,     # Terceiro quartil (75%)
+        'whislo': 2.5, # Mínimo (sem outliers)
+        'whishi': 4.58  # Máximo (sem outliers)
+    }
+    
+    
+    # 4. Criar o boxplot com os dados simulados
+    a = sns.boxplot(x=df['Ponto Médio'],
+                          showfliers = True,
+                       color = 'skyblue',
+                        vert= False)    
+
+    # Salva o gráfico
+    plt.savefig(f"outputs/{graphname}_grafico.png", dpi=300, bbox_inches='tight')
+    plt.close()
+
+
 def plot_all_graphs():
     """
     Função principal que gera todos os gráficos
@@ -129,6 +163,7 @@ def plot_all_graphs():
     plot_release_date_graph(translation["release_date"])
     plot_quantitative_graph(translation["avg_rating"])
     plot_quantitative_graph(translation["review_count"])
+    plot_boxplot()
     
     print("Todos os gráficos foram gerados com sucesso!")
 
