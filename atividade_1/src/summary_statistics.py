@@ -114,7 +114,7 @@ def calculate_range(data, key):
     """Retorna a amplitude (máximo - mínimo) da lista de dados."""
     if key == "release_date":
         data_array = np.array(data, dtype='datetime64[s]')
-        return data_array.max() - data_array.min()
+        return np.timedelta64(data_array.max() - data_array.min(), 'D')
     data = list(map(float, data))  # Converte os dados para float
     return max(data) - min(data)
 
@@ -136,7 +136,7 @@ def calculate_standard_deviation(data, key):
     if key == "release_date":
         data_array = np.array(data, dtype='datetime64[s]').view('i8')
         std_seconds = np.std(data_array)
-        return np.timedelta64(int(std_seconds), 's') 
+        return np.timedelta64(int(std_seconds), 'D') 
     data = list(map(float, data))  # Converte os dados para float
     return math.sqrt(calculate_variance(data, key))
 
@@ -146,7 +146,7 @@ def calculate_interquartile_range(data, key):
         data_array = np.array(data, dtype='datetime64[s]').view('i8')
         Q1 = np.percentile(data_array, 25)
         Q3 = np.percentile(data_array, 75)
-        return np.timedelta64(int(Q3 - Q1), 's')
+        return np.timedelta64(int(Q3 - Q1), 'D')
     Q1, _, Q3 = calculate_quartiles(data, key)
     return Q3 - Q1
 
