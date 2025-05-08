@@ -22,10 +22,10 @@ data_occurences: dict[str, int] = {}  # Mapeia dado -> número de ocorrências
 def calculate_mean(data, key):
     """Retorna a média da lista de dados."""
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_array = np.array(data, dtype='datetime64[D]').view('i8')
         mean = (data_array
             .mean()
-            .astype('datetime64[s]'))
+            .astype('datetime64[D]'))
         return mean
     data = list(map(float, data))  # Converte os dados para float
     return sum(data) / len(data)
@@ -34,7 +34,7 @@ def calculate_median(data, key):
     """Retorna a mediana da lista de dados."""
     if key == "release_date":
         median = np.datetime64(
-            int(np.median(np.array(data, dtype='datetime64[s]').view('i8'))), 's'
+            int(np.median(np.array(data, dtype='datetime64[D]').view('i8'))), 'D'
         )
         return median
     data = list(map(float, data))  # Converte os dados para float
@@ -62,7 +62,7 @@ def calculate_percentile(data, percentile, key):
         raise ValueError("O percentil deve estar entre 0 e 100")
     if key == "release_date":
         value = np.datetime64(
-            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), percentile)), 's'
+            int(np.percentile(np.array(data, dtype='datetime64[D]').view('i8'), percentile)), 'D'
         )
         return value
     data = list(map(float, data))  # Converte os dados para float
@@ -85,11 +85,11 @@ def calculate_quartiles(data, key):
     """Retorna o primeiro (Q1), segundo (Q2/Mediana) e terceiro (Q3) quartis da lista de dados."""
     if key == "release_date":
         Q1 = np.datetime64(
-            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 25)), 's'
+            int(np.percentile(np.array(data, dtype='datetime64[D]').view('i8'), 25)), 'D'
         )
         Q2 = calculate_median(data, key)
         Q3 = np.datetime64(
-            int(np.percentile(np.array(data, dtype='datetime64[s]').view('i8'), 75)), 's'
+            int(np.percentile(np.array(data, dtype='datetime64[D]').view('i8'), 75)), 'D'
         )
         return Q1, Q2, Q3
 
@@ -113,7 +113,7 @@ def calculate_decil(data, decil_index, key):
 def calculate_range(data, key):
     """Retorna a amplitude (máximo - mínimo) da lista de dados."""
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]')
+        data_array = np.array(data, dtype='datetime64[D]')
         return np.timedelta64(data_array.max() - data_array.min(), 'D')
     data = list(map(float, data))  # Converte os dados para float
     return max(data) - min(data)
@@ -121,7 +121,7 @@ def calculate_range(data, key):
 def calculate_variance(data, key):
     """Retorna a variância populacional da lista de dados."""
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_array = np.array(data, dtype='datetime64[D]').view('i8')
         mean = data_array.mean()
         if mean == 0:
             return float('inf')
@@ -134,7 +134,7 @@ def calculate_variance(data, key):
 def calculate_standard_deviation(data, key):
     """Retorna o desvio padrão populacional da lista de dados."""
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_array = np.array(data, dtype='datetime64[D]').view('i8')
         std_seconds = np.std(data_array)
         return np.timedelta64(int(std_seconds), 'D') 
     data = list(map(float, data))  # Converte os dados para float
@@ -143,7 +143,7 @@ def calculate_standard_deviation(data, key):
 def calculate_interquartile_range(data, key):
     """Retorna o intervalo interquartílico (IQR) da lista de dados."""
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_array = np.array(data, dtype='datetime64[D]').view('i8')
         Q1 = np.percentile(data_array, 25)
         Q3 = np.percentile(data_array, 75)
         return np.timedelta64(int(Q3 - Q1), 'D')
@@ -156,7 +156,7 @@ def calculate_coefficient_of_variation(data, key):
     if mean_value == 0 or mean_value == "1970-01-01T00:00:00":
         return float('inf')
     if key == "release_date":
-        data_array = np.array(data, dtype='datetime64[s]').view('i8')
+        data_array = np.array(data, dtype='datetime64[D]').view('i8')
         mean = data_array.mean()
         if mean == 0:
             return float('inf')
