@@ -1,0 +1,42 @@
+
+Estatísticas para release_date:
+Média: 1997-12-09
+Mediana: 2000-09-18
+Moda(s): ['1972-01-01']
+Quartis: Q1 = 1984-09-24, Q2 (Mediana) = 2000-09-18, Q3 = 2012-05-07
+Amplitude: 24795 days
+Variância: 0.5955941910908422
+Desvio Padrão: 6077 days
+Intervalo Interquartílico (IQR): 10087 days
+Coeficiente de Variação: 0.5955941910908422
+
+Estatísticas para avg_rating:
+Média: 3.540424
+Mediana: 3.62
+Moda(s): [3.73]
+Quartis: Q1 = 3.41, Q2 (Mediana) = 3.62, Q3 = 3.77
+Amplitude: 3.7199999999999998
+Variância: 0.140184380224
+Desvio Padrão: 0.3744120460455299
+Intervalo Interquartílico (IQR): 0.3599999999999999
+Coeficiente de Variação: 0.10575344818742895
+
+Estatísticas para review_count:
+Média: 101.302
+Mediana: 72.0
+Moda(s): [43.0]
+Quartis: Q1 = 44.0, Q2 (Mediana) = 72.0, Q3 = 117.0
+Amplitude: 1551.0
+Variância: 11336.836395999999
+Desvio Padrão: 106.47458098532249
+Intervalo Interquartílico (IQR): 73.0
+Coeficiente de Variação: 1.0510609956893495
+
+Estatísticas para artist_name:
+Moda(s): ['Bob Dylan']
+
+Estatísticas para primary_genres:
+Moda(s): ['Singer-Songwriter']
+
+Estatísticas para descriptors:
+Moda(s): ['malevocals']

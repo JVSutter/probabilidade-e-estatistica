@@ -223,37 +223,37 @@ def get_summary_statistics():
                     key_aux = key[:-(len(",..."))]
                 for i in range(value):
                     total_data[data_key].append(key_aux)
-
-    for key, dataset in total_data.items():
-        print(f"\nEstatísticas para {key}:")
-        # Se o dado for qualitativo, calcula apenas a moda
-        if key in qualitative_vars:
-            dataset_list = list(dataset)
+    with open("outputs/estatisticas_resumo.txt", "w", encoding="utf-8") as f:
+        for key, dataset in total_data.items():
+            f.write(f"\nEstatísticas para {key}:\n")
+            # Se o dado for qualitativo, calcula apenas a moda
+            if key in qualitative_vars:
+                dataset_list = list(dataset)
+                mode_values = calculate_mode(dataset_list, key)
+                f.write(f"Moda(s): {mode_values}\n")
+                continue
+            # Se o dado for qualitativo, não faz sentido calcular média, mediana, etc.
+            dataset_list = list(dataset)  # Converte os dados para float
+            #if key == "release_date":
+            mean_value = calculate_mean(dataset_list, key)
+            median_value = calculate_median(dataset_list, key)
             mode_values = calculate_mode(dataset_list, key)
-            print(f"Moda(s): {mode_values}")
-            continue
-        # Se o dado for qualitativo, não faz sentido calcular média, mediana, etc.
-        dataset_list = list(dataset)  # Converte os dados para float
-        #if key == "release_date":
-        mean_value = calculate_mean(dataset_list, key)
-        median_value = calculate_median(dataset_list, key)
-        mode_values = calculate_mode(dataset_list, key)
-        Q1, Q2, Q3 = calculate_quartiles(dataset_list, key)
-        data_range = calculate_range(dataset_list, key)
-        variance_value = calculate_variance(dataset_list, key)
-        std_deviation = calculate_standard_deviation(dataset_list, key)
-        iqr = calculate_interquartile_range(dataset_list, key)
-        coefficient_of_variation = calculate_coefficient_of_variation(dataset_list, key)
-        print(f"Média: {mean_value}")
-        print(f"Mediana: {median_value}")
-        print(f"Moda(s): {mode_values}")
-        print(f"Quartis: Q1 = {Q1}, Q2 (Mediana) = {Q2}, Q3 = {Q3}")
-        print(f"Amplitude: {data_range}")
-        print(f"Variância: {variance_value}")
-        print(f"Desvio Padrão: {std_deviation}")
-        print(f"Intervalo Interquartílico (IQR): {iqr}")
-        print(f"Coeficiente de Variação: {coefficient_of_variation}")
-        # Percentil e decil dependem do index desejado
+            Q1, Q2, Q3 = calculate_quartiles(dataset_list, key)
+            data_range = calculate_range(dataset_list, key)
+            variance_value = calculate_variance(dataset_list, key)
+            std_deviation = calculate_standard_deviation(dataset_list, key)
+            iqr = calculate_interquartile_range(dataset_list, key)
+            coefficient_of_variation = calculate_coefficient_of_variation(dataset_list, key)
+            f.write(f"Média: {mean_value}\n")
+            f.write(f"Mediana: {median_value}\n")
+            f.write(f"Moda(s): {mode_values}\n")
+            f.write(f"Quartis: Q1 = {Q1}, Q2 (Mediana) = {Q2}, Q3 = {Q3}\n")
+            f.write(f"Amplitude: {data_range}\n")
+            f.write(f"Variância: {variance_value}\n")
+            f.write(f"Desvio Padrão: {std_deviation}\n")
+            f.write(f"Intervalo Interquartílico (IQR): {iqr}\n")
+            f.write(f"Coeficiente de Variação: {coefficient_of_variation}\n")
+            # Percentil e decil dependem do index desejado
 
 if __name__ == "__main__":
     get_summary_statistics()
