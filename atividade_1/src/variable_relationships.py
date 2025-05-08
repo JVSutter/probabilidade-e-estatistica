@@ -1,6 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
+import seaborn as sns
+
 from frequency_tables import sturges_rule
 
 # Carregar o dataset
@@ -40,7 +43,6 @@ def plot_variable_relationships():
     # Gráfico 1: Média das avaliações vs. Número de resenhas
     plt.figure(figsize=(8, 6))
     plt.scatter(data['review_count'], data['avg_rating'], alpha=0.7)
-    plt.title('Média das Avaliações vs. Número de Resenhas')
     plt.xlabel('Número de Resenhas')
     plt.ylabel('Média das Avaliações')
     plt.grid(True)
@@ -52,7 +54,6 @@ def plot_variable_relationships():
     nbins = sturges_rule(len(data))
     grouped_data = group_and_average(data, 'release_date', 'avg_rating', nbins)
     grouped_data.plot(kind='line', x='Intervalo', y='Média', figsize=(10, 6), marker='o')
-    plt.title('Média das Avaliações vs. Data de Lançamento')
     plt.xlabel('Intervalos de Data de Lançamento')
     plt.ylabel('Média das Avaliações')
     plt.xticks(rotation=45, ha='right')  # Rotacionar os rótulos do eixo X
@@ -60,7 +61,7 @@ def plot_variable_relationships():
     plt.tight_layout()
     plt.savefig('outputs/Media_vs_Data.png')
 
-    # Gráfico 3: Gêneros primários vs. Média das avaliações (corrigido)
+    # Gráfico 3: Gêneros primários vs. Média das avaliações
     genre_data = data[['primary_genres', 'avg_rating']].dropna()
 
     # Separar múltiplos gêneros
@@ -86,16 +87,20 @@ def plot_variable_relationships():
 
     # Plotar
     plt.figure(figsize=(10, 6))
-    plt.bar(genre_avg['primary_genres'], genre_avg['avg_rating'], color='skyblue')
-    plt.title('Média das Avaliações por Gênero Primário')
+    bars = plt.bar(genre_avg['primary_genres'], genre_avg['avg_rating'], color='skyblue')
     plt.xlabel('Gêneros Primários')
     plt.ylabel('Média das Avaliações')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
+
+    # Adicionar valores acima das barras
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height, f'{height:.2f}', ha='center', va='bottom')
+
     plt.savefig('outputs/Media_por_Genero.png')
 
-
-    # Gráfico 4: Descritores vs. Média das avaliações (corrigido)
+    # Gráfico 4: Descritores vs. Média das avaliações
     descriptor_data = data[['descriptors', 'avg_rating']].dropna()
 
     # Separar múltiplos descritores em listas
@@ -119,54 +124,57 @@ def plot_variable_relationships():
     descriptor_avg = filtered_descriptor_data.groupby('descriptors')['avg_rating'].mean().reset_index()
     descriptor_avg = descriptor_avg.sort_values(by='avg_rating', ascending=False).head(10)
 
-
     # Plotar
     plt.figure(figsize=(10, 6))
-    plt.bar(descriptor_avg['descriptors'], descriptor_avg['avg_rating'], color='lightgreen')
-    plt.title('Média das Avaliações por Descritor')
+    bars = plt.bar(descriptor_avg['descriptors'], descriptor_avg['avg_rating'], color='lightgreen')
     plt.xlabel('Descritores')
     plt.ylabel('Média das Avaliações')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
+
+    # Adicionar valores acima das barras
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height, f'{height:.2f}', ha='center', va='bottom')
+
     plt.savefig('outputs/Media_por_Descritor.png')
 
-    # Gráfico 5: Evolução temporal da média por gênero
-    genre_time_data = data[['release_date', 'primary_genres', 'avg_rating']].dropna()
-    genre_time_data['release_date'] = pd.to_datetime(genre_time_data['release_date'])
-    genre_time_data['primary_genres'] = genre_time_data['primary_genres'].str.split(',')
-    genre_time_data = genre_time_data.explode('primary_genres')
-    genre_time_data['primary_genres'] = genre_time_data['primary_genres'].str.strip()
+    # Descritor por data
+    descriptor_time_data = data[['release_date', 'descriptors']].dropna()
+    descriptor_time_data['release_date'] = pd.to_datetime(descriptor_time_data['release_date'])
+    descriptor_time_data['year'] = descriptor_time_data['release_date'].dt.year
 
-    # Filtrar gêneros com pelo menos 100 ocorrências
-    genre_counts = genre_time_data['primary_genres'].value_counts()
-    valid_genres = genre_counts[genre_counts >= 100].index
-    genre_time_data = genre_time_data[genre_time_data['primary_genres'].isin(valid_genres)]
+    # Criar colunas de década
+    descriptor_time_data['decade'] = (descriptor_time_data['year'] // 10) * 10
+    descriptor_time_data['decade'] = descriptor_time_data['decade'].astype(int).astype(str) + 's'
 
-    # Agrupar por intervalo de anos e gênero
-    genre_time_data['year'] = genre_time_data['release_date'].dt.year
-    bins = pd.interval_range(start=1950, end=2025, freq=10, closed='left')
-    genre_time_data['decade'] = pd.cut(genre_time_data['year'], bins=bins)
+    # Explodir os descritores
+    descriptor_time_data['descriptors'] = descriptor_time_data['descriptors'].str.split(',')
+    descriptor_time_data = descriptor_time_data.explode('descriptors')
+    descriptor_time_data['descriptors'] = descriptor_time_data['descriptors'].str.strip()
 
-    grouped = genre_time_data.groupby(['decade', 'primary_genres'])['avg_rating'].mean().reset_index()
+    # Filtrar descritores frequentes
+    descriptor_counts = descriptor_time_data['descriptors'].value_counts()
+    min_count = 100
+    top_descriptors = descriptor_counts[descriptor_counts >= min_count].index
+    descriptor_time_data = descriptor_time_data[descriptor_time_data['descriptors'].isin(top_descriptors)]
 
-    # Pivotar para ter décadas como eixo x e gêneros como colunas
-    pivoted = grouped.pivot(index='decade', columns='primary_genres', values='avg_rating')
+    # Tabela de frequência: descritor vs. década
+    freq_table = pd.crosstab(descriptor_time_data['decade'], descriptor_time_data['descriptors'])
 
-    # Selecionar os gêneros com mais dados (top 5 com menos valores nulos)
-    top_genres = pivoted.count().sort_values(ascending=False).head(5).index
-    pivoted = pivoted[top_genres]
+    # Manter apenas os N descritores mais frequentes
+    top_N = 10
+    top_columns = freq_table.sum().sort_values(ascending=False).head(top_N).index
+    freq_table = freq_table[top_columns]
 
-    # Plotar gráfico
+    # Plotar heatmap
     plt.figure(figsize=(12, 6))
-    pivoted.plot(marker='o')
-    plt.title('Evolução da Média das Avaliações por Gênero ao Longo das Décadas')
+    sns.heatmap(freq_table.T, cmap='YlGnBu', annot=True, fmt='d')
     plt.xlabel('Década')
-    plt.ylabel('Média das Avaliações')
-    plt.xticks(rotation=45)
-    plt.grid(True)
+    plt.ylabel('Descritor')
     plt.tight_layout()
-    plt.legend(title='Gênero')
-    plt.savefig('outputs/Media_por_Genero_Tempo.png')
+    plt.savefig('outputs/Descritores_por_Tempo.png')
+
 
 if __name__ == "__main__":
     plot_variable_relationships()
