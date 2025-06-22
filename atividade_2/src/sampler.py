@@ -32,4 +32,4 @@ def sample_csv(input_file, output_file, sample_size):
         print(f"Amostra de {sample_size} linhas criada com sucesso em '{output_file}'")
 
 
-sample_csv("./dataset/rym_clean1.csv", "./outputs/sample/rym_sample.csv", 360)
+sample_csv("./dataset/rym_clean1.csv", "./outputs/sample/rym_sample.csv", 400)
