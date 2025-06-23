@@ -45,7 +45,7 @@ mean_m = sample.mean()
 plt.figure(figsize=(10, 6))
 sns.histplot(sample, kde=True, bins=30, color="skyblue", alpha=0.7)
 plt.axvline(mean_m, color="red", linestyle="--",
-            label=f"Média amostral = {mean_m:.2f}")
+            label=f"Média amostral = {mean_m:.3f}")
 plt.axvline(mu0, color="green", linestyle="-",
             label=f"Valor testado = {mu0}")
 plt.title("Distribuição das avaliações de álbuns com descriptor 'malevocals'")
