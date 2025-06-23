@@ -25,7 +25,7 @@ z = np.polyfit(
 )  # Quadrados mínimos para a linha de tendência
 p = np.poly1d(z)
 plt.plot(df["release_year"], p(df["release_year"]), "r--", alpha=0.8)
-plt.savefig("outputs/rating_vs_year.png")
+plt.savefig("outputs/graphs/rating_vs_year.png")
 plt.close()
 
 # Aplica regressão linear usando statsmodels
