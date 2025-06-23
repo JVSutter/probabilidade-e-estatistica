@@ -1,5 +1,11 @@
+"""
+Hipótese: A média da nota dos álbuns com o descritor 'malevocals' é maior que 3.5.
+"""
+
 import pandas as pd
 from scipy import stats
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # 1) Carrega os dados
 df = pd.read_csv(
@@ -31,3 +37,21 @@ if p_one < alpha:
     print("Rejeita H0 — há evidência de que a média é maior que 3.5")
 else:
     print("Não rejeita H0 — sem evidência suficiente de média > 3.5")
+
+# Gera gráfico de distribuição das notas dos álbuns com descritor malevocals
+mu0 = 3.5
+mean_m = sample.mean()
+
+plt.figure(figsize=(10, 6))
+sns.histplot(sample, kde=True, bins=30, color="skyblue", alpha=0.7)
+plt.axvline(mean_m, color="red", linestyle="--",
+            label=f"Média amostral = {mean_m:.2f}")
+plt.axvline(mu0, color="green", linestyle="-",
+            label=f"Valor testado = {mu0}")
+plt.title("Distribuição das avaliações de álbuns com descriptor 'malevocals'")
+plt.xlabel("Média das avaliações")
+plt.ylabel("Frequência")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.savefig("outputs/graphs/malevocals_rating_distribution.png")
+plt.close()
