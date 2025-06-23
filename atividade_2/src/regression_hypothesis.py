@@ -14,7 +14,7 @@ df["release_year"] = df["release_date"].dt.year  # Trabalha apenas com o ano
 # Basic visualization to see the relationship
 plt.figure(figsize=(12, 6))
 plt.scatter(df["release_year"], df["avg_rating"], alpha=0.5)
-plt.title("Avaliação vs. Ano de Lançamento")
+plt.title("Média das Avaliações vs. Ano de Lançamento")
 plt.xlabel("Ano de Lançamento")
 plt.ylabel("Média das Avaliações")
 plt.grid(True, alpha=0.3)
