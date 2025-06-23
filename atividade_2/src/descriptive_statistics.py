@@ -20,6 +20,7 @@ def quantitative_statistics(col):
     std_dev = data.std()
     min_val = data.min()
     max_val = data.max()
+    amplitude = max_val - min_val
     q1 = data.quantile(0.25)
     q3 = data.quantile(0.75)
     
@@ -33,6 +34,7 @@ def quantitative_statistics(col):
         'desvio padrão': std_dev,
         'mínimo': min_val,
         'máximo': max_val,
+        'amplitude': amplitude,
         'Q1': q1,
         'Q3': q3,
         'IC 95% média': ic
