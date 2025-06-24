@@ -1,3 +1,7 @@
+"""
+Hipótese: Existe uma correlação positiva entre o número de avaliações e a nota média do álbum.
+"""
+
 import pandas as pd
 from scipy.stats import pearsonr
 

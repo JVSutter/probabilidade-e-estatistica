@@ -5,14 +5,15 @@ import seaborn as sns
 # Carregar os dados
 df = pd.read_csv('outputs/sample/rym_sample.csv')  # ajuste o nome se necessário
 
-# Gerar o gráfico de dispersão
+# Gerar o gráfico de dispersão com linha de tendência
 plt.figure(figsize=(8,6))
-sns.scatterplot(
+sns.regplot(
     x='rating_count',
     y='avg_rating',
     data=df,
-    color='blue',
-    alpha=0.6
+    scatter_kws={'color': 'blue', 'alpha': 0.6},
+    line_kws={'color': 'red'},
+    ci=None  # remove intervalo de confiança, se desejar
 )
 
 # Título e rótulos
